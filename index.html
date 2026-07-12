@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marwan Hatem — Video Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0C;
+    --bg-alt:#111114;
+    --surface:#1A1A1E;
+    --surface-2:#212126;
+    --text:#EDEAE3;
+    --text-dim:#8B8880;
+    --text-faint:#5C5A55;
+    --accent:#FF4B1F;
+    --accent-soft:rgba(255,75,31,.14);
+    --accent-dim:rgba(255,75,31,.55);
+    --line:#28282C;
+    --mono:'JetBrains Mono', monospace;
+    --disp:'Cairo', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--disp);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent);color:#0A0A0C;}
+
+  /* ---------- grain ---------- */
+  .grain{
+    position:fixed;inset:0;pointer-events:none;z-index:200;opacity:.035;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- sprocket strip (signature element) ---------- */
+  .sprocket{
+    height:22px;width:100%;
+    background-image:repeating-linear-gradient(90deg, var(--surface-2) 0 10px, transparent 10px 26px);
+    background-color:var(--bg-alt);
+    position:relative;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    z-index:5;
+  }
+  .sprocket::before, .sprocket::after{
+    content:'';
+    position:absolute; top:0; bottom:0; left:0; right:0;
+    background-image:repeating-linear-gradient(90deg, var(--bg) 0 4px, transparent 4px 26px);
+    background-position:8px center;
+  }
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px clamp(20px,5vw,60px);
+    background:linear-gradient(to bottom, rgba(10,10,12,.85), transparent);
+  }
+  .logo{
+    font-weight:800; font-size:1.05rem; letter-spacing:.5px;
+  }
+  .logo span{color:var(--accent);}
+  .nav-cta{
+    font-family:var(--mono); font-size:.75rem; letter-spacing:1px;
+    color:var(--text); border:1px solid var(--text-faint);
+    padding:9px 18px; border-radius:2px; text-decoration:none;
+    transition:.25s;
+  }
+  .nav-cta:hover{border-color:var(--accent); color:var(--accent);}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;}
+  .slideshow{
+    position:relative; width:100%; height:88vh; overflow:hidden;
+  }
+  .slide{
+    position:absolute; inset:0; opacity:0; transition:opacity 1.2s ease;
+    display:flex; align-items:flex-end;
+  }
+  .slide.active{opacity:1;}
+  .slide-bg{
+    position:absolute; inset:0;
+  }
+  .slide-bg video{
+    width:100%; height:100%; object-fit:cover;
+    display:block;
+  }
+  .slide-bg::after{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(120% 90% at 20% 100%, rgba(0,0,0,.15), rgba(0,0,0,.75)),
+               linear-gradient(180deg, rgba(10,10,12,.15) 0%, rgba(10,10,12,.35) 55%, rgba(10,10,12,.92) 100%);
+  }
+  .slide-meta{
+    position:relative; z-index:2; padding:0 clamp(20px,5vw,60px) 34px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .slide-duration{
+    font-family:var(--mono); font-size:.72rem; color:var(--accent);
+    border:1px solid var(--accent-dim); padding:4px 9px; border-radius:2px;
+  }
+  .slide-label{font-family:var(--mono); font-size:.85rem; color:var(--text-dim); letter-spacing:.5px;}
+
+  .play-icon{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:64px; height:64px; border-radius:50%; z-index:2;
+    border:1px solid rgba(237,234,227,.35);
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(2px);
+    opacity:.7;
+  }
+  .play-icon::before{
+    content:''; width:0; height:0;
+    border-top:9px solid transparent; border-bottom:9px solid transparent;
+    border-right:14px solid var(--text);
+    margin-right:-3px;
+  }
+
+  .hero-overlay{
+    position:absolute; z-index:3; inset:0; pointer-events:none;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 clamp(20px,5vw,60px);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:.78rem; color:var(--accent);
+    letter-spacing:2px; margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:'●'; font-size:.5rem;}
+  .hero h1{
+    font-size:clamp(2.4rem, 6.5vw, 5rem); font-weight:800; line-height:1.08;
+    max-width:16ch;
+  }
+  .hero h1 em{font-style:normal; color:var(--accent);}
+  .hero p{
+    margin-top:20px; font-size:clamp(1rem,1.6vw,1.2rem); color:var(--text-dim);
+    max-width:46ch; line-height:1.8; font-weight:400;
+  }
+  .hero-scroll{
+    margin-top:34px; font-family:var(--mono); font-size:.78rem; color:var(--text-faint);
+    display:flex; align-items:center; gap:10px; pointer-events:auto;
+  }
+  .hero-scroll .bar{width:34px; height:1px; background:var(--text-faint);}
+  .reel-overlay{
+  position:absolute; z-index:3; inset:0; pointer-events:none;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:0 clamp(20px,5vw,60px);
+}
+.reel-overlay h2{font-size:clamp(1.8rem,4vw,3rem); font-weight:800; max-width:16ch;}
+
+  /* scrub bar */
+  .scrub{
+    position:absolute; bottom:22px; left:clamp(20px,5vw,60px); right:clamp(20px,5vw,60px);
+    z-index:4; display:flex; align-items:center; gap:12px;
+  }
+  .scrub-time{font-family:var(--mono); font-size:.72rem; color:var(--text-dim); min-width:64px;}
+  .scrub-track{
+    flex:1; height:2px; background:rgba(237,234,227,.15); position:relative; border-radius:2px; overflow:hidden;
+  }
+  .scrub-fill{
+    position:absolute; top:0; right:0; height:100%; background:var(--accent); width:0%;
+    transition:width .1s linear;
+  }
+  .scrub-dots{display:flex; gap:8px;}
+  .scrub-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--text-faint); cursor:pointer; transition:.25s;
+  }
+  .scrub-dot.active{background:var(--accent); transform:scale(1.3);}
+
+  /* ---------- intro ---------- */
+  .intro{
+    padding:100px clamp(20px,5vw,60px);
+    background:var(--bg-alt);
+    display:grid; grid-template-columns:1fr 1.4fr; gap:60px;
+    align-items:start;
+  }
+  .intro .eyebrow{margin-bottom:16px;}
+  .intro h2{font-size:clamp(1.6rem,3vw,2.3rem); font-weight:800; line-height:1.3; max-width:14ch;}
+  .intro-body p{
+    color:var(--text-dim); font-size:1.02rem; line-height:2; margin-bottom:24px;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;}
+  .chip{
+    font-family:var(--mono); font-size:.75rem; color:var(--text);
+    border:1px solid var(--line); padding:8px 14px; border-radius:2px; background:var(--surface);
+  }
+
+  /* ---------- reel-mid (second slideshow) ---------- */
+  .reel-mid{background:var(--bg); padding-top:70px;}
+  .reel-mid .section-head{
+    padding:0 clamp(20px,5vw,60px) 40px; display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px;
+  }
+  .section-head h2{font-size:clamp(1.6rem,3vw,2.3rem); font-weight:800;}
+  .section-head .eyebrow{margin-bottom:10px;}
+  .reel-mid .slideshow{height:64vh;}
+
+  .reel-frame{position:relative;}
+
+  /* ---------- packages ---------- */
+  .packages{
+    padding:110px clamp(20px,5vw,60px) 100px;
+    background:var(--bg-alt);
+    border-top:1px solid var(--line);
+  }
+  .packages .section-head{padding:0 0 50px; max-width:640px;}
+  .packages .section-head p{color:var(--text-dim); margin-top:16px; line-height:1.9; font-size:1rem;}
+  .pkg-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line);
+  }
+  .pkg{
+    background:var(--bg-alt); padding:40px 30px; display:flex; flex-direction:column; position:relative;
+    transition:.3s;
+  }
+  .pkg:hover{background:var(--surface);}
+  .pkg.featured{background:var(--bg);}
+  .pkg.featured:hover{background:var(--surface-2);}
+
+  .ai-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:.68rem; color:var(--accent);
+    border:1px solid var(--accent-dim); background:var(--accent-soft);
+    padding:4px 10px; border-radius:2px; margin-bottom:22px; width:fit-content;
+    align-self:center;
+  }
+  .ai-badge::before{content:'✦';}
+  .pkg h3{font-size:1.4rem; font-weight:800; margin-bottom:8px;}
+  .pkg .price{
+    font-family:var(--mono); font-size:2.1rem; font-weight:700; color:var(--text); margin:14px 0 4px;
+  }
+  .pkg .price span{font-size:.95rem; color:var(--text-dim); font-weight:400;}
+  .pkg .delivery{
+    font-family:var(--mono); font-size:.78rem; color:var(--accent); margin-bottom:26px;
+    text-align:center; font-weight:700;
+  }
+  .pkg ul{list-style:none; margin-bottom:30px; flex:1;}
+  .pkg li{
+    font-size:.92rem; color:var(--text-dim); padding:10px 0; border-top:1px solid var(--line);
+    display:flex; gap:10px; line-height:1.6;
+    justify-content:center; font-weight:700;
+  }
+  .pkg li:first-child{border-top:none;}
+  .pkg li::before{content:'—'; color:var(--text-faint); flex-shrink:0;}
+  .pkg-cta{
+    text-align:center; padding:13px; font-family:var(--mono); font-size:.8rem;
+    border:1px solid var(--text-faint); color:var(--text); text-decoration:none; border-radius:2px; transition:.25s;
+  }
+  .pkg-cta:hover{border-color:var(--accent); color:var(--accent);}
+  .pkg.featured .pkg-cta{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+
+  /* ---------- contact ---------- */
+  .contact{
+    padding:120px clamp(20px,5vw,60px) 80px; text-align:center;
+    background:var(--bg);
+  }
+  .contact .eyebrow{justify-content:center;}
+  .contact h2{font-size:clamp(2rem,5vw,3.4rem); font-weight:800; max-width:16ch; margin:0 auto 26px;}
+  .contact p{color:var(--text-dim); max-width:44ch; margin:0 auto 40px; line-height:1.9;}
+  .contact-links{display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:60px;}
+  .contact-link{
+    font-family:var(--mono); font-size:.85rem; color:var(--text);
+    border:1px solid var(--line); padding:14px 24px; border-radius:2px; text-decoration:none; transition:.25s;
+  }
+  .contact-link:hover{border-color:var(--accent); color:var(--accent);}
+  .contact-main{
+    display:inline-block; font-family:var(--disp); font-weight:700; font-size:1.15rem;
+    color:var(--bg); background:var(--accent); padding:18px 46px; border-radius:2px; text-decoration:none;
+    transition:.25s;
+  }
+  .contact-main:hover{opacity:.88;}
+
+  footer{
+    padding:30px clamp(20px,5vw,60px); display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:.72rem; color:var(--text-faint); border-top:1px solid var(--line);
+    flex-wrap:wrap; gap:10px;
+  }
+
+  /* reveal animation */
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .8s ease, transform .8s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  @media (max-width:860px){
+    .intro{grid-template-columns:1fr; gap:30px;}
+    .pkg-grid{grid-template-columns:1fr;}
+    .hero h1{max-width:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav class="nav">
+  <div class="logo">Marwan Hatem</div>
+  <a href="#contact" class="nav-cta">Contact Me</a>
+</nav>
+
+<!-- ============ HERO — SLIDESHOW 1 ============ -->
+<section class="hero">
+  <div class="sprocket"></div>
+<div class="slideshow" id="slideshow-1">
+  <div class="slide active">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 55%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip1.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:33</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #241a12 55%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip2.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:20</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 45%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip3.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:16</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #22190f 55%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip4.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:21</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #251811 50%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip5.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:13</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #221c10 50%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip6.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:19</span></div>
+  </div>
+</div>
+
+<div class="hero-overlay">
+  <div class="eyebrow">REEL 01 / شغل مختار</div>
+  <h1>الاحتراف يبدأ من <em>أول</em> لقطة.</h1>
+  <p>مونتير فيديو متخصص في المحتوى القصير والريلز والبودكاست، بشتغل بدقة على الإيقاع والكولور والساوند علشان كل فيديو يوصل رسالته من أول ثانية.</p>
+  <div class="hero-scroll"><div class="bar"></div>انزل تحت تشوف الشغل</div>
+</div>
+
+<div class="scrub">
+  <span class="scrub-time" id="time-1">00:00:00</span>
+  <div class="scrub-track"><div class="scrub-fill" id="fill-1"></div></div>
+  <div class="scrub-dots" id="dots-1"></div>
+</div>
+</section>
+
+<!-- ============ INTRO ============ -->
+<section class="intro reveal">
+  <div>
+    <div class="eyebrow">عني</div>
+    <h2>أحول الأفكار العادية لفيديوهات احترافية.</h2>
+  </div>
+  <div class="intro-body">
+    <p>مونتير فيديو بخبرة سنتين في تحرير وإنتاج جميع أنواع المحتوى، بما في ذلك المحتوى الإعلاني، التجاري، التعليمي، الترفيهي، ومحتوى منصات التواصل الاجتماعي. أقدم مونتاجًا احترافيًا مع موشن جرافيك، ترجمة متحركة، تصميم صوت، وتصحيح ألوان، مع التركيز على إنتاج فيديوهات جذابة وعالية الجودة تحقق أهداف العملاء وتترك أثرًا لدى الجمهور.</p>
+    <div class="chips">
+      <span class="chip">Premiere Pro</span>
+      <span class="chip">After Effects</span>
+      <span class="chip">Sound Design</span>
+      <span class="chip">Color Grading</span>
+      <span class="chip">AI Tools</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REEL 02 — SLIDESHOW 2 ============ -->
+<section class="reel-mid reveal">
+<div class="reel-frame">
+<div class="slideshow" id="slideshow-2">
+  <div class="slide active">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #291710 50%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip7.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:38</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 55%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip8.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:29</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #241a12 55%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip9.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:17</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 45%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip10.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:20</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #22190f 55%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip11.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+    <div class="slide-meta"><span class="slide-duration">00:13</span></div>
+  </div>
+  <div class="slide">
+    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #251811 50%, #0a0a0c 100%);">
+      <video muted loop playsinline><source src="videos/clip12.mp4" type="video/mp4"></video>
+    </div>
+    <div class="play-icon"></div>
+<div class="slide-meta"><span class="slide-duration">00:45</span></div>
+  </div>
+</div>
+  <div class="reel-overlay">
+    <div class="eyebrow">REEL 02 / مختارات تانية</div>
+    <h2>لقطات من مشاريع مختلفة.</h2>
+  </div>
+</div>
+<div class="scrub" style="position:relative; left:0; right:0; padding:18px clamp(20px,5vw,60px) 0;">
+  <span class="scrub-time" id="time-2">00:00:00</span>
+  <div class="scrub-track"><div class="scrub-fill" id="fill-2"></div></div>
+  <div class="scrub-dots" id="dots-2"></div>
+</div>
+</section>
+
+<!-- ============ PACKAGES ============ -->
+<section class="packages reveal" id="packages" dir="ltr" style="text-align:center;">  
+  <div class="section-head">
+    <div class="eyebrow">EXPORT PRESETS / Packages</div>
+    <h2>Choose the package that fits your project.</h2>
+    <p>Each package has a clear delivery time and review limits. Adjust the prices and details as needed.</p>
+  </div>
+
+  <div class="pkg-grid" dir="ltr">    <!-- Basic -->
+    <div class="pkg">
+      <span class="pkg-tag">BASIC CUT</span>
+      <h3>Basic Package</h3>
+      <div class="price">500<span>egp</span></div>
+      <div class="delivery">30 Seconds</div>
+      <div class="delivery">Delivery Time : 2-4 Days</div>
+      <div class="delivery">Revisions : 2</div>
+      <ul>
+        <li>Cuts & Trimming</li>
+        <li>Basic Transition</li>
+        <li>Simple Caption</li>
+        <li>Sound Design</li>
+        <li>Color Correction</li>
+      </ul>
+      <a href="#contact" class="pkg-cta">Order this package</a>
+    </div>
+
+    <!-- standard -->
+    <div class="pkg">
+      <span class="pkg-tag" >Standard EDIT</span>
+      <h3>Standard Package</h3>
+      <div class="price">750<span>egp</span></div>
+      <div class="delivery">30 Seconds</div>
+      <div class="delivery">Delivery Time : 2-3 Days</div>
+      <div class="delivery">Revisions : 3</div>
+      <ul>
+        <li>Motion Graphics</li>
+        <li>B-roll Integration</li>
+        <li>Sound Design</li>
+        <li>Color Correction</li>
+      </ul>
+      <a href="#contact" class="pkg-cta">Order this package</a>
+    </div>
+
+    <!-- Premium -->
+    <div class="pkg featured">
+      <span class="ai-badge">AI as a Supporting Tool</span>      
+      <h3>Premium Package</h3>      
+      <span class="pkg-tag">Animation Level : High</span> 
+      <span class="pkg-tag">STUDIO — AI ASSISTED</span>           
+      <div class="price">1000<span>egp</span></div>
+      <div class="delivery">45 Seconds</div>
+      <div class="delivery">Delivery Time : 24-48 Hours</div>
+      <div class="delivery">Revisions : 5</div>
+      <ul>
+        <li>Advanced Motion Graphics</li>
+        <li>Custom Animations</li>
+        <li>Sound Design</li>
+        <li>Color Correction</li>        
+        <li>AI</li>
+      </ul>
+      <a href="#contact" class="pkg-cta">Order this package</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact reveal" id="contact" dir="ltr">
+  <div class="eyebrow">FINAL CUT</div>
+  <h2>Ready to edit the next shot?</h2>
+  <p>Send me an idea of your project or the duration and format you need, and we'll find the right package for you.</p>
+  <div class="contact-links">
+    <a class="contact-link" href="https://wa.me/201098163345" target="_blank" rel="noopener">Whatsapp</a>
+    <a class="contact-link" href="mailto:marwanhatem1907@gmail.com">Email</a>
+    <a class="contact-link" href="https://www.instagram.com/leer_studioo/" target="_blank" rel="noopener">Instagram</a>
+    <a class="contact-link" href="https://www.behance.net/marwanhatem2" target="_blank" rel="noopener">Behance</a>
+  </div>
+  <a class="contact-main" href="mailto:marwanhatem1907@gmail.com">Send a Message</a>
+</section>
+
+<footer>
+  <span>© 2026 Marwan Hatem</span>
+  <span>ALX / PUA</span>
+</footer>
+
+<script>
+function initSlideshow(slideshowId, dotsId, timeId, fillId){
+  const container = document.getElementById(slideshowId);
+  const slides = Array.from(container.querySelectorAll('.slide'));
+  const dotsWrap = document.getElementById(dotsId);
+  const timeEl = document.getElementById(timeId);
+  const fillEl = document.getElementById(fillId);
+  if(!container || !dotsWrap || slides.length === 0) return;
+
+  let idx = 0;
+  let rafId = null;
+  let slideStart = 0;
+  const total = slides.length;
+
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'scrub-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(dot);
+  });
+  const dots = dotsWrap.querySelectorAll('.scrub-dot');
+
+function getDurationMs(i){
+  return 7000;
+}
+
+  function fmtTime(ms){
+    const totalSec = Math.floor(ms / 1000);
+    const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return `00:${m}:${s}`;
+  }
+
+const videos = slides.map(s => s.querySelector('video'));
+
+function playVideo(i){
+    const v = videos[i];
+    if(v){
+      v.muted = true;
+      v.playsInline = true;
+      v.currentTime = 0;
+      v.play().catch(()=>{});
+    }
+  }
+  function pauseVideo(i){
+    const v = videos[i];
+    if(v) v.pause();
+  }
+
+  function goTo(i){
+    slides[idx].classList.remove('active');
+    dots[idx].classList.remove('active');
+    pauseVideo(idx);
+    idx = i;
+    slides[idx].classList.add('active');
+    dots[idx].classList.add('active');
+    playVideo(idx);
+    slideStart = performance.now();
+  }
+
+  function tick(now){
+    const duration = getDurationMs(idx);
+    const elapsed = now - slideStart;
+    const pct = Math.min((elapsed / duration) * 100, 100);
+    if(fillEl) fillEl.style.width = pct + '%';
+    if(timeEl) timeEl.textContent = fmtTime(elapsed);
+    if(elapsed >= duration){
+      goTo((idx + 1) % total);
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  playVideo(idx);
+  slideStart = performance.now();
+  rafId = requestAnimationFrame(tick);
+}
+initSlideshow('slideshow-1','dots-1','time-1','fill-1');
+initSlideshow('slideshow-2','dots-2','time-2','fill-2');
+
+// reveal on scroll
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+}, {threshold:.15});
+revealEls.forEach(el => io.observe(el));
+// fallback: لو الفيديو الأول اتمنع من الـ autoplay، شغّله أول لمسة/سكرول من المستخدم
+function retryPlay(){
+  document.querySelectorAll('.slide.active video').forEach(v => v.play().catch(()=>{}));
+  window.removeEventListener('touchstart', retryPlay);
+  window.removeEventListener('scroll', retryPlay);
+}
+window.addEventListener('touchstart', retryPlay, {once:true});
+window.addEventListener('scroll', retryPlay, {once:true});
+</script>
+
+</body>
+</html>
