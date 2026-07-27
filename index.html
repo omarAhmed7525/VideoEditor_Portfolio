@@ -39,22 +39,7 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ---------- sprocket strip (signature element) ---------- */
-  .sprocket{
-    height:22px;width:100%;
-    background-image:repeating-linear-gradient(90deg, var(--surface-2) 0 10px, transparent 10px 26px);
-    background-color:var(--bg-alt);
-    position:relative;
-    border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
-    z-index:5;
-  }
-  .sprocket::before, .sprocket::after{
-    content:'';
-    position:absolute; top:0; bottom:0; left:0; right:0;
-    background-image:repeating-linear-gradient(90deg, var(--bg) 0 4px, transparent 4px 26px);
-    background-position:8px center;
-  }
+
 
   /* ---------- nav ---------- */
   .nav{
@@ -146,6 +131,52 @@
     display:flex; align-items:center; gap:10px; pointer-events:auto;
   }
   .hero-scroll .bar{width:34px; height:1px; background:var(--text-faint);}
+
+  .hero-content{
+    position:relative; z-index:3;
+    padding:160px clamp(20px,5vw,60px) 50px;
+  }
+  .hero-content .eyebrow{margin-bottom:18px;}
+  .hero-content h1{
+    font-size:clamp(2.4rem, 6.5vw, 5rem); font-weight:800; line-height:1.08; max-width:16ch;
+  }
+  .hero-content h1 em{font-style:normal; color:var(--accent);}
+  .hero-content p{
+    margin-top:20px; font-size:clamp(1rem,1.6vw,1.2rem); color:var(--text-dim);
+    max-width:46ch; line-height:1.8; font-weight:400;
+  }
+  .hero-content .hero-scroll{
+    margin-top:34px; font-family:var(--mono); font-size:.78rem; color:var(--text-faint);
+    display:flex; align-items:center; gap:10px;
+  }
+
+  .video-grid{
+    position:relative; width:100%; overflow:hidden;
+    padding:0 0 60px; direction:ltr;
+  }
+  .grid-track{
+    display:flex; flex-direction:row; gap:14px; width:max-content;
+    animation:marqueeLeft 42s linear infinite;
+  }
+  @keyframes marqueeLeft{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+  .grid-item{
+    position:relative; width:440px; aspect-ratio:9/16; border-radius:6px; overflow:hidden;
+    background:var(--surface); flex-shrink:0;
+  }
+  .grid-item video{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .grid-item::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(10,10,12,0) 60%, rgba(10,10,12,.85) 100%);
+    pointer-events:none;
+  }
+  .grid-item .play-icon{display:none;}
+  .grid-item .play-icon::before{border-top-width:6px; border-bottom-width:6px; border-right-width:10px;}
+  .grid-meta{position:absolute; z-index:2; bottom:10px; right:10px;}
   .reel-overlay{
   position:absolute; z-index:3; inset:0; pointer-events:none;
   display:flex; flex-direction:column; justify-content:center;
@@ -207,8 +238,10 @@
     background:var(--bg-alt);
     border-top:1px solid var(--line);
   }
-  .packages .section-head{padding:0 0 50px; max-width:640px;}
-  .packages .section-head p{color:var(--text-dim); margin-top:16px; line-height:1.9; font-size:1rem;}
+  .packages .section-head{padding:0 0 50px; max-width:900px; margin:0 auto;}
+  .packages .section-head .eyebrow{justify-content:center;}
+  .packages .section-head h2{white-space:nowrap !important; font-size:clamp(1.4rem, 2.6vw, 2rem) !important;}
+  .packages .section-head p{white-space:nowrap !important; font-size:clamp(.8rem, 1.3vw, 1rem) !important;}
   .pkg-grid{
     display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
     background:var(--line); border:1px solid var(--line);
@@ -259,7 +292,7 @@
     background:var(--bg);
   }
   .contact .eyebrow{justify-content:center;}
-  .contact h2{font-size:clamp(2rem,5vw,3.4rem); font-weight:800; max-width:16ch; margin:0 auto 26px;}
+  .contact h2{font-size:clamp(2rem,5vw,3.4rem); font-weight:800; max-width:none; white-space:nowrap; margin:0 auto 26px;}
   .contact p{color:var(--text-dim); max-width:44ch; margin:0 auto 40px; line-height:1.9;}
   .contact-links{display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-bottom:60px;}
   .contact-link{
@@ -288,6 +321,10 @@
     .intro{grid-template-columns:1fr; gap:30px;}
     .pkg-grid{grid-template-columns:1fr;}
     .hero h1{max-width:none;}
+  .hero-content h1{max-width:none;}
+  .contact h2{white-space:normal; max-width:16ch;}
+  .packages .section-head h2{white-space:normal !important; font-size:clamp(1.6rem,5vw,2rem) !important;}
+  .packages .section-head p{white-space:normal !important; font-size:1rem !important;}
   }
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important; scroll-behavior:auto !important;}
@@ -305,64 +342,77 @@
 
 <!-- ============ HERO — SLIDESHOW 1 ============ -->
 <section class="hero">
-  <div class="sprocket"></div>
-<div class="slideshow" id="slideshow-1">
-  <div class="slide active">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 55%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip1.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:33</span></div>
+  <div class="hero-content">
+    <div class="eyebrow">REEL 01 / Selected Work</div>
+    <h1>الاحتراف يبدأ من <em>أول</em> لقطة.</h1>
+    <p>مونتير فيديو متخصص في المحتوى القصير والريلز، بشتغل بدقة على الإيقاع والكولور والساوند علشان كل فيديو يوصل رسالته من أول ثانية.</p>
+    <div class="hero-scroll"><div class="bar"></div>انزل تحت تشوف الشغل</div>
   </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #241a12 55%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip2.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:20</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 45%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip3.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:16</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #22190f 55%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip4.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:21</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #251811 50%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip5.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:13</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #221c10 50%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip6.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:19</span></div>
-  </div>
-</div>
 
-<div class="hero-overlay">
-  <div class="eyebrow">REEL 01 / شغل مختار</div>
-  <h1>الاحتراف يبدأ من <em>أول</em> لقطة.</h1>
-  <p>مونتير فيديو متخصص في المحتوى القصير والريلز والبودكاست، بشتغل بدقة على الإيقاع والكولور والساوند علشان كل فيديو يوصل رسالته من أول ثانية.</p>
-  <div class="hero-scroll"><div class="bar"></div>انزل تحت تشوف الشغل</div>
-</div>
-
-<div class="scrub">
-  <span class="scrub-time" id="time-1">00:00:00</span>
-  <div class="scrub-track"><div class="scrub-fill" id="fill-1"></div></div>
-  <div class="scrub-dots" id="dots-1"></div>
-</div>
+  <div class="video-grid" id="grid-1">
+    <div class="grid-track">
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip1.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:33</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip2.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:20</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip3.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:16</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip4.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:21</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip5.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:13</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip6.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:19</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip1.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:33</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip2.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:20</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip3.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:16</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip4.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:21</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip5.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:13</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip6.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:19</span></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ============ INTRO ============ -->
@@ -372,7 +422,7 @@
     <h2>أحول الأفكار العادية لفيديوهات احترافية.</h2>
   </div>
   <div class="intro-body">
-    <p>مونتير فيديو بخبرة سنتين في تحرير وإنتاج جميع أنواع المحتوى، بما في ذلك المحتوى الإعلاني، التجاري، التعليمي، الترفيهي، ومحتوى منصات التواصل الاجتماعي. أقدم مونتاجًا احترافيًا مع موشن جرافيك، ترجمة متحركة، تصميم صوت، وتصحيح ألوان، مع التركيز على إنتاج فيديوهات جذابة وعالية الجودة تحقق أهداف العملاء وتترك أثرًا لدى الجمهور.</p>
+    <p>مونتير فيديو بخبرة سنتين في تحرير وإنتاج جميع أنواع المحتوى، بما في ذلك المحتوى الإعلاني، التجاري، التعليمي، الترفيهي، ومحتوى منصات التواصل الاجتماعي. أقدم مونتاجًا احترافيًا مع موشن جرافيك، تصميم صوت، وتصحيح ألوان، مع التركيز على إنتاج فيديوهات جذابة وعالية الجودة تحقق أهداف العملاء وتترك أثرًا لدى الجمهور.</p>
     <div class="chips">
       <span class="chip">Premiere Pro</span>
       <span class="chip">After Effects</span>
@@ -383,63 +433,79 @@
   </div>
 </section>
 
-<!-- ============ REEL 02 — SLIDESHOW 2 ============ -->
+<!-- ============ REEL 02 ============ -->
 <section class="reel-mid reveal">
-<div class="reel-frame">
-<div class="slideshow" id="slideshow-2">
-  <div class="slide active">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #291710 50%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip7.mp4" type="video/mp4"></video>
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">REEL 02</div>
+      <h2>لقطات من مشاريع مختلفة.</h2>
     </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:38</span></div>
   </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 55%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip8.mp4" type="video/mp4"></video>
+
+  <div class="video-grid" id="grid-2">
+    <div class="grid-track">
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip7.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:38</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip8.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:29</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip9.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:17</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip10.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:20</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip11.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:13</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip12.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:45</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip7.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:38</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip8.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:29</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip9.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:17</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip10.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:20</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip11.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:13</span></div>
+      </div>
+      <div class="grid-item">
+        <video muted loop playsinline preload="metadata"><source src="videos/clip12.mp4" type="video/mp4"></video>
+        <div class="play-icon"></div>
+        <div class="grid-meta"><span class="slide-duration">00:45</span></div>
+      </div>
     </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:29</span></div>
   </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #241a12 55%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip9.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:17</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #2a1712 45%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip10.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:20</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #22190f 55%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip11.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-    <div class="slide-meta"><span class="slide-duration">00:13</span></div>
-  </div>
-  <div class="slide">
-    <div class="slide-bg" style="background:linear-gradient(155deg, #1b1b1f 0%, #251811 50%, #0a0a0c 100%);">
-      <video muted loop playsinline><source src="videos/clip12.mp4" type="video/mp4"></video>
-    </div>
-    <div class="play-icon"></div>
-<div class="slide-meta"><span class="slide-duration">00:45</span></div>
-  </div>
-</div>
-  <div class="reel-overlay">
-    <div class="eyebrow">REEL 02 / مختارات تانية</div>
-    <h2>لقطات من مشاريع مختلفة.</h2>
-  </div>
-</div>
-<div class="scrub" style="position:relative; left:0; right:0; padding:18px clamp(20px,5vw,60px) 0;">
-  <span class="scrub-time" id="time-2">00:00:00</span>
-  <div class="scrub-track"><div class="scrub-fill" id="fill-2"></div></div>
-  <div class="scrub-dots" id="dots-2"></div>
-</div>
 </section>
 
 <!-- ============ PACKAGES ============ -->
@@ -527,93 +593,41 @@
 </footer>
 
 <script>
-function initSlideshow(slideshowId, dotsId, timeId, fillId){
-  const container = document.getElementById(slideshowId);
-  const slides = Array.from(container.querySelectorAll('.slide'));
-  const dotsWrap = document.getElementById(dotsId);
-  const timeEl = document.getElementById(timeId);
-  const fillEl = document.getElementById(fillId);
-  if(!container || !dotsWrap || slides.length === 0) return;
+function initVideoGrid(gridId){
+  const grid = document.getElementById(gridId);
+  if(!grid) return;
+  const videos = grid.querySelectorAll('video');
+  videos.forEach(v => { v.muted = true; v.playsInline = true; });
 
-  let idx = 0;
-  let rafId = null;
-  let slideStart = 0;
-  const total = slides.length;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const v = entry.target;
+      if(entry.isIntersecting){
+        if(v.readyState === 0){ v.load(); }
+        v.play().catch(()=>{});
+      } else {
+        v.pause();
+      }
+    });
+  }, {threshold:.2});
 
-  slides.forEach((_, i) => {
-    const dot = document.createElement('div');
-    dot.className = 'scrub-dot' + (i === 0 ? ' active' : '');
-    dot.addEventListener('click', () => goTo(i));
-    dotsWrap.appendChild(dot);
-  });
-  const dots = dotsWrap.querySelectorAll('.scrub-dot');
-
-function getDurationMs(i){
-  return 7000;
+  videos.forEach(v => io.observe(v));
 }
+initVideoGrid('grid-1');
+initVideoGrid('grid-2');
 
-  function fmtTime(ms){
-    const totalSec = Math.floor(ms / 1000);
-    const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
-    const s = String(totalSec % 60).padStart(2, '0');
-    return `00:${m}:${s}`;
-  }
-
-const videos = slides.map(s => s.querySelector('video'));
-
-function playVideo(i){
-    const v = videos[i];
-    if(v){
-      v.muted = true;
-      v.playsInline = true;
-      v.currentTime = 0;
-      v.play().catch(()=>{});
-    }
-  }
-  function pauseVideo(i){
-    const v = videos[i];
-    if(v) v.pause();
-  }
-
-  function goTo(i){
-    slides[idx].classList.remove('active');
-    dots[idx].classList.remove('active');
-    pauseVideo(idx);
-    idx = i;
-    slides[idx].classList.add('active');
-    dots[idx].classList.add('active');
-    playVideo(idx);
-    slideStart = performance.now();
-  }
-
-  function tick(now){
-    const duration = getDurationMs(idx);
-    const elapsed = now - slideStart;
-    const pct = Math.min((elapsed / duration) * 100, 100);
-    if(fillEl) fillEl.style.width = pct + '%';
-    if(timeEl) timeEl.textContent = fmtTime(elapsed);
-    if(elapsed >= duration){
-      goTo((idx + 1) % total);
-    }
-    rafId = requestAnimationFrame(tick);
-  }
-
-  playVideo(idx);
-  slideStart = performance.now();
-  rafId = requestAnimationFrame(tick);
-}
-initSlideshow('slideshow-1','dots-1','time-1','fill-1');
-initSlideshow('slideshow-2','dots-2','time-2','fill-2');
-
-// reveal on scroll
 const revealEls = document.querySelectorAll('.reveal');
-const io = new IntersectionObserver((entries) => {
+const io2 = new IntersectionObserver((entries) => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
 }, {threshold:.15});
-revealEls.forEach(el => io.observe(el));
-// fallback: لو الفيديو الأول اتمنع من الـ autoplay، شغّله أول لمسة/سكرول من المستخدم
+revealEls.forEach(el => io2.observe(el));
+
 function retryPlay(){
-  document.querySelectorAll('.slide.active video').forEach(v => v.play().catch(()=>{}));
+  document.querySelectorAll('.video-grid video').forEach(v => {
+    const rect = v.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    if(isVisible) v.play().catch(()=>{});
+  });
   window.removeEventListener('touchstart', retryPlay);
   window.removeEventListener('scroll', retryPlay);
 }
